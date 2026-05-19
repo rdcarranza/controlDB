@@ -1,0 +1,15 @@
+#Este directorio CMD agrupa todos los puntos de entrada de nuestro sistema.
+
+Comenzamos con la API, luego podremos probar un CLI.
+#En API, la carpeta nucleo (core) agrupará al dominio.
+
+#En la carpeta env tenemos el manejo de los archivos .env con sus variables de entorno.
+
+La idea es tener un adaptador que sirva para todos 
+
+
+#Los CONTROLADORES tienen que realizar las tres acciones siguientes:
+-Traducir el request y validar.
+-Consumir un servicio.
+-Traducir el response.
+
