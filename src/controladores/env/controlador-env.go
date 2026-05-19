@@ -10,51 +10,34 @@ import (
 )
 
 func VerificarEnv(dir_env string, c_dir_env string) bool {
-	/*
-		ex, _ := os.Executable()
-		fmt.Println("La ruta del ejecutable es: " + ex)
-		exPath := filepath.Dir(ex)
-		fmt.Println("El directorio del ejecutable es:" + exPath)
-	*/
-
-	env := dir_env
-	copia_env := c_dir_env
-	if !EnvExiste(env) {
-		fmt.Println("El archivo env NO existe!")
-		err := CrearEnv(env, copia_env)
-		if err != nil {
+	if !EnvExiste(dir_env) {
+		fmt.Println("El archivo env NO existe, generando desde la plantilla...")
+		if err := CrearEnv(dir_env, c_dir_env); err != nil {
 			log.Fatal(err)
 		}
-
 	}
-
-	if EnvExiste(env) {
-		return true
-	}
-
-	return false
+	return EnvExiste(dir_env)
 
 }
 
 func CrearEnv(dir_env string, c_dir_env string) error {
 	copia_env, err := os.Open(c_dir_env)
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("no se pudo abrir la plantilla '%s': %w", c_dir_env, err)
 	}
+	defer copia_env.Close()
+
 	_env, err := os.OpenFile(dir_env, os.O_RDWR|os.O_CREATE, 0775)
 	if err != nil {
-		return err
-		//log.Fatal(err)
+		return fmt.Errorf("no se pudo crear '%s': %w", dir_env, err)
 	}
-	_, err = io.Copy(_env, copia_env)
-	if err != nil {
-		return err
-		//log.Fatal(err)
+	defer _env.Close()
 
-	} else {
-		fmt.Println("Se genera env exitosamente!")
+	if _, err = io.Copy(_env, copia_env); err != nil {
+		return fmt.Errorf("error al copiar plantilla: %w", err)
 	}
 
+	fmt.Printf("Archivo '%s' generado exitosamente. Completá las variables y volvé a ejecutar.\n", dir_env)
 	return nil
 }
 
@@ -67,30 +50,28 @@ func EnvExiste(arch_env string) bool {
 }
 
 func GetEnv(v string, dir_env string) (string, error) {
-	env := dir_env
-
-	file, err := os.Open(env)
+	file, err := os.Open(dir_env)
 	if err != nil {
-		fmt.Println(err)
-		return "", err
+		return "", fmt.Errorf("no se pudo abrir '%s': %w", dir_env, err)
 	}
 	defer file.Close()
 
-	variable := v
 	scanner := bufio.NewScanner(file)
-	linea := ""
 	for scanner.Scan() {
-		line := scanner.Text()
-		if strings.Contains(line, variable) {
-			fmt.Printf("Se encontró la variable '%s' en la línea: %s\n", variable, line)
-			linea = line
+		line := strings.TrimSpace(scanner.Text())
+		// ignorar comentarios y líneas vacías
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		partes := strings.SplitN(line, "=", 2)
+		if len(partes) == 2 && strings.TrimSpace(partes[0]) == v {
+			return strings.TrimSpace(partes[1]), nil
 		}
 	}
 
 	if err := scanner.Err(); err != nil {
-		fmt.Println(err)
-		return "", err
+		return "", fmt.Errorf("error al leer '%s': %w", dir_env, err)
 	}
 
-	return strings.Replace(linea, v+"=", "", -1), nil
+	return "", fmt.Errorf("variable '%s' no encontrada en '%s'", v, dir_env)
 }
