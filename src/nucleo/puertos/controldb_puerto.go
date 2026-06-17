@@ -7,5 +7,6 @@ import "controlDB/src/nucleo/dominio"
 type RepositorioDB interface {
 	Inicializar(cfg *dominio.ConfigDB) error
 	Respaldar(cfg *dominio.ConfigDB) error
+	RespaldarNativo(cfg *dominio.ConfigDB) error
 	Restaurar(cfg *dominio.ConfigDB) error
 }

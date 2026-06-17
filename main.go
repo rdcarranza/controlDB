@@ -3,5 +3,5 @@ package main
 import "controlDB/cmd/cli/controladores"
 
 func main() {
-	controladores.NuevoControladorCLI().Ejecutar()
+	controladores.NewControladorCLI().Ejecutar()
 }

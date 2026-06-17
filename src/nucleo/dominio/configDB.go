@@ -6,9 +6,10 @@ import "fmt"
 type Operacion string
 
 const (
-	OperacionInicializar Operacion = "init"
-	OperacionRespaldar   Operacion = "backup"
-	OperacionRestaurar   Operacion = "restore"
+	OperacionInicializar     Operacion = "init"
+	OperacionRespaldar       Operacion = "backup"
+	OperacionRespaldarNativo Operacion = "backup2"
+	OperacionRestaurar       Operacion = "restore"
 )
 
 // ConfigDB contiene los parámetros de conexión y la operación a ejecutar.

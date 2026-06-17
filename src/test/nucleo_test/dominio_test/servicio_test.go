@@ -26,6 +26,11 @@ func (m *repoMock) Respaldar(cfg *dominio.ConfigDB) error {
 	return m.errorFijo
 }
 
+func (m *repoMock) RespaldarNativo(cfg *dominio.ConfigDB) error {
+	m.llamadas = append(m.llamadas, "respaldar_nativo")
+	return m.errorFijo
+}
+
 func (m *repoMock) Restaurar(cfg *dominio.ConfigDB) error {
 	m.llamadas = append(m.llamadas, "restaurar")
 	return m.errorFijo
@@ -40,7 +45,7 @@ func cfgValida(op dominio.Operacion) *dominio.ConfigDB {
 
 func TestServicio_Init(t *testing.T) {
 	mock := &repoMock{}
-	svc := servicios.NuevoServicioDB(mock)
+	svc := servicios.NewServicioDB(mock)
 
 	err := svc.Ejecutar(cfgValida(dominio.OperacionInicializar))
 
@@ -50,7 +55,7 @@ func TestServicio_Init(t *testing.T) {
 
 func TestServicio_Backup(t *testing.T) {
 	mock := &repoMock{}
-	svc := servicios.NuevoServicioDB(mock)
+	svc := servicios.NewServicioDB(mock)
 
 	err := svc.Ejecutar(cfgValida(dominio.OperacionRespaldar))
 
@@ -60,7 +65,7 @@ func TestServicio_Backup(t *testing.T) {
 
 func TestServicio_Restore(t *testing.T) {
 	mock := &repoMock{}
-	svc := servicios.NuevoServicioDB(mock)
+	svc := servicios.NewServicioDB(mock)
 
 	err := svc.Ejecutar(cfgValida(dominio.OperacionRestaurar))
 
@@ -70,7 +75,7 @@ func TestServicio_Restore(t *testing.T) {
 
 func TestServicio_OperacionDesconocida(t *testing.T) {
 	mock := &repoMock{}
-	svc := servicios.NuevoServicioDB(mock)
+	svc := servicios.NewServicioDB(mock)
 
 	err := svc.Ejecutar(cfgValida("borrar"))
 	assert.Error(t, err)
@@ -79,15 +84,25 @@ func TestServicio_OperacionDesconocida(t *testing.T) {
 
 func TestServicio_PropagaErrorRepositorio(t *testing.T) {
 	mock := &repoMock{errorFijo: errors.New("fallo de red")}
-	svc := servicios.NuevoServicioDB(mock)
+	svc := servicios.NewServicioDB(mock)
 
 	err := svc.Ejecutar(cfgValida(dominio.OperacionRespaldar))
 	assert.Error(t, err)
 }
 
+func TestServicio_BackupNativo(t *testing.T) {
+	mock := &repoMock{}
+	svc := servicios.NewServicioDB(mock)
+
+	err := svc.Ejecutar(cfgValida(dominio.OperacionRespaldarNativo))
+
+	assert.NoError(t, err)
+	assert.Equal(t, []string{"respaldar_nativo"}, mock.llamadas)
+}
+
 func TestServicio_ConfigInvalida(t *testing.T) {
 	mock := &repoMock{}
-	svc := servicios.NuevoServicioDB(mock)
+	svc := servicios.NewServicioDB(mock)
 
 	cfg := dominio.CrearConfigDB("mariadb", "3306", "", "", "", "", "", "")
 	err := svc.Ejecutar(cfg)

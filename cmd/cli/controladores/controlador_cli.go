@@ -19,7 +19,7 @@ const (
 // y traduce el response hacia stdout/stderr.
 type ControladorCLI struct{}
 
-func NuevoControladorCLI() *ControladorCLI {
+func NewControladorCLI() *ControladorCLI {
 	return &ControladorCLI{}
 }
 
@@ -48,7 +48,7 @@ func (c *ControladorCLI) Ejecutar() {
 		c.salir(fmt.Errorf("no se pudo inicializar el repositorio: %w", err))
 	}
 
-	svc := servicios.NuevoServicioDB(repo)
+	svc := servicios.NewServicioDB(repo)
 
 	if err := svc.Ejecutar(cfg); err != nil {
 		c.salir(err)
@@ -58,19 +58,29 @@ func (c *ControladorCLI) Ejecutar() {
 // construirConfig lee las credenciales del .env y las combina con los flags.
 func (c *ControladorCLI) construirConfig(params *nucleo.ParametrosCLI) (*dominio.ConfigDB, error) {
 	host, err := env.GetEnv("host_db", DirEnv)
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 
 	nameDB, err := env.GetEnv("name_db", DirEnv)
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 
 	portDB, err := env.GetEnv("port_db", DirEnv)
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 
 	userDB, err := env.GetEnv("user_db", DirEnv)
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 
 	pwDB, err := env.GetEnv("pw_db", DirEnv)
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 
 	cfg := dominio.CrearConfigDB(
 		"mariadb",

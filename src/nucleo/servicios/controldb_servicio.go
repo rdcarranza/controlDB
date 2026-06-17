@@ -11,7 +11,7 @@ type ServicioDB struct {
 	repo puertos.RepositorioDB
 }
 
-func NuevoServicioDB(repo puertos.RepositorioDB) *ServicioDB {
+func NewServicioDB(repo puertos.RepositorioDB) *ServicioDB {
 	return &ServicioDB{repo: repo}
 }
 
@@ -36,6 +36,13 @@ func (s *ServicioDB) Ejecutar(cfg *dominio.ConfigDB) error {
 		}
 		fmt.Println("✔ Respaldo completado correctamente.")
 
+	case dominio.OperacionRespaldarNativo:
+		fmt.Printf("▶ Respaldando BD '%s' con mariadb-backup → '%s'...\n", cfg.BD, cfg.ArchivoSQL)
+		if err := s.repo.RespaldarNativo(cfg); err != nil {
+			return fmt.Errorf("error al respaldar con mariadb-backup: %w", err)
+		}
+		fmt.Println("✔ Respaldo nativo completado correctamente.")
+
 	case dominio.OperacionRestaurar:
 		fmt.Printf("▶ Restaurando BD '%s' desde '%s'...\n", cfg.BD, cfg.ArchivoSQL)
 		if err := s.repo.Restaurar(cfg); err != nil {
@@ -44,7 +51,7 @@ func (s *ServicioDB) Ejecutar(cfg *dominio.ConfigDB) error {
 		fmt.Println("✔ Restauración completada correctamente.")
 
 	default:
-		return fmt.Errorf("operación desconocida: '%s' (valores válidos: init | backup | restore)", cfg.Op)
+		return fmt.Errorf("operación desconocida: '%s' (valores válidos: init | backup | backup2  | restore)", cfg.Op)
 	}
 
 	return nil

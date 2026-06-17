@@ -63,6 +63,61 @@ func (r *Repositorio) Respaldar(cfg *dominio.ConfigDB) error {
 	return respaldarManual(cfg)
 }
 
+// RespaldarNativo usa mariadb-backup (o xtrabackup) para hacer un respaldo
+// binario físico del servidor completo en el directorio indicado por ArchivoSQL.
+//
+// El directorio de destino debe estar vacío o no existir.
+// mariadb-backup debe estar instalado y disponible en el PATH.
+//
+// Equivale a ejecutar:
+//
+//	mariadb-backup --backup --target-dir=<dir> --user=<u> --password=<p> --host=<h> --port=<p>
+func (r *Repositorio) RespaldarNativo(cfg *dominio.ConfigDB) error {
+	herramienta, err := buscarHerramientaNativa()
+	if err != nil {
+		return err
+	}
+
+	// mariadb-backup trabaja sobre directorios, no archivos .sql
+	destino := cfg.ArchivoSQL
+	if err := os.MkdirAll(destino, 0750); err != nil {
+		return fmt.Errorf("no se pudo crear el directorio de destino '%s': %w", destino, err)
+	}
+
+	args := []string{
+		"--backup",
+		"--target-dir=" + destino,
+		"--host=" + cfg.Host,
+		"--port=" + cfg.Puerto,
+		"--user=" + cfg.Usuario,
+		"--password=" + cfg.Contraseña,
+	}
+
+	cmd := exec.Command(herramienta, args...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("%s falló: %w", herramienta, err)
+	}
+	return nil
+}
+
+// buscarHerramientaNativa busca mariadb-backup y xtrabackup en el PATH.
+// mariadb-backup tiene precedencia por ser la herramienta oficial de MariaDB.
+func buscarHerramientaNativa() (string, error) {
+	for _, nombre := range []string{"mariadb-backup", "xtrabackup"} {
+		if ruta, err := exec.LookPath(nombre); err == nil {
+			return ruta, nil
+		}
+	}
+	return "", fmt.Errorf(
+		"no se encontró mariadb-backup ni xtrabackup en el PATH\n" +
+			"  En Debian/Ubuntu: sudo apt install mariadb-backup\n" +
+			"  En RHEL/Rocky:    sudo dnf install MariaDB-backup",
+	)
+}
+
 // Restaurar importa un archivo SQL sobre la BD existente.
 func (r *Repositorio) Restaurar(cfg *dominio.ConfigDB) error {
 	db, err := sql.Open("mysql", cfg.DSN())

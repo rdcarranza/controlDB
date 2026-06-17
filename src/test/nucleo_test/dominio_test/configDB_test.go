@@ -77,5 +77,6 @@ func TestConfigDB_Validar_PuertoVacioDefecto3306(t *testing.T) {
 func TestOperacionConstantes(t *testing.T) {
 	assert.Equal(t, dominio.Operacion("init"), dominio.OperacionInicializar)
 	assert.Equal(t, dominio.Operacion("backup"), dominio.OperacionRespaldar)
+	assert.Equal(t, dominio.Operacion("backup-native"), dominio.OperacionRespaldarNativo)
 	assert.Equal(t, dominio.Operacion("restore"), dominio.OperacionRestaurar)
 }

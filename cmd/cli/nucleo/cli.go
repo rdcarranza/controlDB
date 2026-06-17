@@ -18,7 +18,7 @@ type ParametrosCLI struct {
 func ParsearFlags() *ParametrosCLI {
 	params := &ParametrosCLI{}
 
-	flag.StringVar(&params.Operacion, "o", "", "Operación a ejecutar: init | backup | restore")
+	flag.StringVar(&params.Operacion, "o", "", "Operación a ejecutar: init | backup | backup2 | restore ")
 	flag.StringVar(&params.ArchivoSQL, "a", "", "Ruta al archivo .sql")
 	flag.Usage = MostrarUso
 	flag.Parse()
@@ -39,14 +39,16 @@ Uso: controlDB -o <operacion> -a <archivo.sql>
 
 Flags:
   -o    Operación a ejecutar:
-          init     Crea la BD si no existe y ejecuta el SQL
-          backup   Exporta la BD al archivo indicado
-          restore  Importa el archivo SQL sobre la BD existente
-  -a    Ruta al archivo .sql (soporta ~)
+          init     Crea la BD si no existe y ejecuta el SQL.
+          backup   Exporta la BD al archivo indicado.
+		  backup2  Respaldo binario físico con mariadb-backup (requiere instalación).
+          restore  Importa el archivo SQL sobre la BD existente.
+  -a    Ruta al archivo .sql (soporta ~). [backup2 recibe un directorio vacío, no un archivo .sql]  
 
 Ejemplos:
   controlDB -o init    -a ~/scripts/schema.sql
   controlDB -o backup  -a ~/respaldos/backup.sql
+  controlDB -o backup2 -a ~/respaldos/
   controlDB -o restore -a ~/respaldos/backup.sql
 
 Las credenciales de conexión se leen del archivo .env:
